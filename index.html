@@ -86,6 +86,8 @@ hr{border:none;border-top:1px solid #2c4060;margin:14px 0;}
 .seo-tag.miss{background:#3a2f1a;color:#e0b85d;border-color:#6e5c2a;}
 
 body.role-notsuper .superOnly{display:none !important}
+body.open-mode #userChip,body.open-mode #signOutBtn,body.open-mode #pendingBox,body.open-mode #membersBox,body.open-mode #activityBox,body.open-mode .memberMgmt{display:none !important}
+
 body.role-member .adminOnly{display:none !important}
 </style>
 </head>
@@ -581,7 +583,7 @@ https://i.ebayimg.com/images/g/zzzz/s-l1600.jpg
         <div id="pendingBox" style="display:none;margin-top:10px;"></div>
         <div id="membersBox" class="adminOnly" style="display:none;margin-top:10px;border-top:1px dashed #2c4060;padding-top:12px;"></div>
         <div id="activityBox" class="adminOnly" style="display:none;margin-top:10px;border-top:1px dashed #2c4060;padding-top:12px;"></div>
-        <div class="adminOnly" style="margin-top:10px;border-top:1px dashed #2c4060;padding-top:10px;">
+        <div class="adminOnly memberMgmt" style="margin-top:10px;border-top:1px dashed #2c4060;padding-top:10px;">
           <div style="font-size:12px;color:#7f93a8;margin-bottom:6px;">👑 Admin: member manually add karo (email likho → seedha approve)</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
             <input type="text" id="manualEmail" placeholder="member@gmail.com" style="flex:1;min-width:180px;background:#0d1620;border:1px solid #2c4060;border-radius:8px;color:#cfe0f0;padding:8px 10px;font-size:12.5px;">
@@ -3766,8 +3768,8 @@ function preview(){
 
 /* ================= SHARE DATA (Export/Import) ================= */
 /* ===== GOOGLE AUTH (admin + member roles, approval queue) ===== */
-var GOOGLE_CLIENT_ID='376150193120-6rsi24ntnlr5iucug19gkc2qrt0bi46i.apps.googleusercontent.com';
-var ADMIN_EMAILS=['hamzamumtazecom@gmail.com','m98m786@gmail.com'];
+var GOOGLE_CLIENT_ID='';
+var ADMIN_EMAILS=[];
 var MEMBERS_KEY='m98m_members_v1';
 function getMembers(){try{return JSON.parse(localStorage.getItem(MEMBERS_KEY))||{};}catch(e){return {};}}
 function setMembers(m){try{localStorage.setItem(MEMBERS_KEY,JSON.stringify(m));}catch(e){}}
@@ -3852,7 +3854,7 @@ function onGoogleCred(resp){
     if(msg){msg.style.display='block';msg.style.color='#ff8f8f';msg.textContent='Sign-in read nahi hua — dobara try karo.';}
   }
 }
-var EMERGENCY_KEY='M98M-Hamza-9X4kQ7-Emergency';
+var EMERGENCY_KEY='';
 var __gisTry=0;
 function loadGis(){
   __gisTry++;
@@ -3876,9 +3878,17 @@ function loadGis(){
   };
   document.head.appendChild(s);
 }
+var OPEN_MODE=true; /* Company edition: koi login nahi - link = access */
 function initAuth(){
+  if(OPEN_MODE){
+    try{sessionStorage.setItem('m98m_auth',JSON.stringify({role:'admin',email:'',name:''}));}catch(e){}
+    try{sessionStorage.setItem('m98m_unlocked','1');}catch(e){}
+    var g0=document.getElementById('pwGate'); if(g0)g0.style.display='none';
+    try{document.body.classList.add('open-mode');}catch(e){}
+    return;
+  }
   try{
-    if(location.hash&&location.hash.indexOf(EMERGENCY_KEY)>=0){
+    if(EMERGENCY_KEY&&location.hash&&location.hash.indexOf(EMERGENCY_KEY)>=0){
       history.replaceState(null,'',location.pathname+location.search);
       authGrant('admin','(emergency)','Hamza');
       return;
@@ -4068,6 +4078,7 @@ function denyMember(email){
   var box=document.getElementById('pendingBox');if(box)box.innerHTML='<div class="msg">🚫 '+esc(email)+' deny kar diya.</div>';
 }
 function isSuperAdmin(){
+  if(typeof OPEN_MODE!=='undefined'&&OPEN_MODE)return true;
   var u=authUser(); if(!u)return false;
   if(u.email==='(emergency)')return true;
   return (typeof ADMIN_EMAILS!=='undefined') && ADMIN_EMAILS.indexOf((u.email||'').toLowerCase())>=0;
@@ -4113,7 +4124,7 @@ function membersFromLog(log){
 }
 
 /* ===== TEAM CLOUD (Google Sheet backend - live sharing) ===== */
-var TEAM_CLOUD_URL='https://script.google.com/macros/s/AKfycbwQExEdpJoWAkSv8t0sk3wsMkYENtqrmE9ZdooTZBrU6z1um3FkJbOQTEnzZYZ9N421/exec';
+var TEAM_CLOUD_URL='';
 var CLOUD_URL_KEY='m98m_cloud_url_v1';
 function cloudUrl(){var u='';try{u=localStorage.getItem(CLOUD_URL_KEY)||'';}catch(e){}return (u||TEAM_CLOUD_URL||'').trim();}
 var CLOUD_SINCE_KEY='m98m_cloud_since_v1';
